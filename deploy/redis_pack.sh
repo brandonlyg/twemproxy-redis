@@ -48,6 +48,7 @@ cp -v ./redis_install.sh ${pkgdir}/install.sh
 echo "redis_home=${redis_home}" |tee $pkgdir/install.conf
 
 cd $tmpdir
-/usr/bin/zip -r ${pkgname}.zip $pkgname
+echo "start zip ${pkgname}"
+/usr/bin/zip -rq ${pkgname}.zip $pkgname
 
 cd ..

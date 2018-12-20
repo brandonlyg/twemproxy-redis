@@ -198,3 +198,31 @@ function get_redis_processes(){
 
     echo "$procount"
 }
+
+# 检查是某个目录是否部署在指定host上
+function check_deployed(){
+    local ip=$1
+    local sshport=$2
+    local user=$3
+    local homedir=$4
+
+    local exp="\[\$#\]"
+
+    local res=$(expect << EOF
+spawn ssh -p ${sshport} ${user}@${ip}
+expect ${exp}
+send "\[ \-d ${homedir} \]; echo \"exist=\$?\"\n"
+expect ${exp}
+send "logout\n"
+expect eof
+EOF
+)
+
+    res=$(echo "$res"|grep -e "^exist=[01]"|awk -F= '{ print $2 }')
+    res=${res:0:1}
+    if [ "0" = "$res" ]; then
+        echo "true"
+        return 0
+    fi
+    echo "false"
+}

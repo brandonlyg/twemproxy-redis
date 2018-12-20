@@ -1,13 +1,21 @@
 #!/bin/sh
 #部署redis
 
+#指定部署的group name(gname)
+deploy_gname=$1
+
+if [ -z "$deploy_gname" ]; then
+    echo "miss param deploy gname"
+    exit 1
+fi
+
 pkgname=redisins_install
 
 #生成配置
-./redisins_gen_insconf.sh
+./redisins_gen_insconf.sh $deploy_gname
 
 #打包
-./redisins_pack.sh $pkgname
+./redisins_pack.sh $deploy_gname $pkgname
 if [ "$?" != 0 ]; then
     echo "redis pack error"
     exit 1
@@ -19,6 +27,10 @@ function get_all_servers(){
     local gname=""
     declare -A local mapsvrs=()
     for gname in $groups; do
+        if [ "$gname" != "${deploy_gname}" ]; then
+            continue
+        fi
+
         local nodes=$(get_redis_servers $gname)
         for mss in $nodes; do
             ms=$(echo $mss|awk -F\- '{ print $1 }')
@@ -39,7 +51,6 @@ function get_all_servers(){
 }
 
 servers=$(get_all_servers)
-
 #部署到redis_servers的每一个host上
 for sname in ${servers}; do
     echo "deploy redis $sname"
@@ -62,5 +73,23 @@ for sname in ${servers}; do
 	echo ""
 	./deployhost.sh $ip $sshport $user $pkgname $remote_tmpdir
 done
+
+
+source ./redis_sentinel_common.sh
+
+sentinel_addr=$(get_sentinal_address)
+cmdfile=tmp/sentinel_cmds.txt
+if [ -f "$cmdfile" ]; then
+    rm $cmdfile
+fi
+
+gen_sentinel_commands ${deploy_gname} | tee -a ${cmdfile}
+
+for addr in ${sentinel_addr}; do
+    ../dists/python/bin/python redis_sentinel_setter.py ${addr} ${cmdfile}
+done
+
+
+
 
 

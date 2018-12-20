@@ -1,13 +1,15 @@
 #!/bin/sh
 #创建twemproxy安装包
 
+pkgname=$1
+gname=$2
+
 source ./common.sh
 source ./configparser.sh
 
 unalias cp
 cwd=$(pwd)
 
-pkgname=$1
 pkgdir=$tmpdir/$pkgname
 if [ -d "$pkgdir" ]; then
         rm -rf $pkgdir
@@ -19,29 +21,27 @@ insconfdir=${pkgdir}/insconfs
 mkdir -v $insconfdir
 
 #把twemproxy实例的配置放到指定的目录下
-for gname in $groups; do
-    nodes=$(get_twemproxy_servers $gname)
-    for nd in $nodes; do
-        twip=$(gethost_ip $nd)
+nodes=$(get_twemproxy_servers $gname)
+for nd in $nodes; do
+    twip=$(gethost_ip $nd)
 
-        confdir=${insconfdir}/${twip}
-        if [ ! -d ${confdir} ]; then
-            mkdir -v $confdir
+    confdir=${insconfdir}/${twip}
+    if [ ! -d ${confdir} ]; then
+        mkdir -v $confdir
+    fi
+
+    num=0
+    while [ $num -lt 100 ]; do
+        confname=${gname}-${num}.yml
+        twconf=${gendir}/twp_${confname}
+        if [ ! -f $twconf ]; then
+            break
         fi
+        cp -v $twconf ${confdir}/$confname
 
-        num=0
-        while [ $num -lt 100 ]; do
-            confname=${gname}-${num}.yml
-            twconf=${gendir}/twp_${confname}
-            if [ ! -f $twconf ]; then
-                break
-            fi
-            cp -v $twconf ${confdir}/$confname
-
-            num=$(expr $num + 1)
-        done
-
+        num=$(expr $num + 1)
     done
+
 done
 
 #打包redis-sentinel工具
@@ -58,10 +58,12 @@ echo "sentinels=${sentinel_nodes}"|tee -a ${conf_file}
 #添加安装脚本
 cp -v ./twpins_install.sh $pkgdir/install.sh
 echo "twemproxy_home=${twemproxy_home}"|tee $pkgdir/install.conf
+echo "gname=${gname}"|tee -a $pkgdir/install.conf
 
 #打包
 cd $tmpdir
-/usr/bin/zip -r ${pkgname}.zip $pkgname
+echo "start zip ${pkgname}"
+/usr/bin/zip -rq ${pkgname}.zip $pkgname
 
 cd $cwd
 

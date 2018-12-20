@@ -1,5 +1,7 @@
 #!/bin/sh
 
+dst_gname=$1
+
 source ./common.sh
 
 confsdir=${gendir}/redis_ins_confs
@@ -78,6 +80,10 @@ function gen_slave_conf(){
 }
 
 for gname in $groups; do
+    if [ "$gname" != "$dst_gname" ]; then
+        continue
+    fi
+
     echo "start gen group $gname"
 
     nodes=$(get_redis_servers $gname)

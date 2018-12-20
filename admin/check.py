@@ -13,7 +13,7 @@ def checkres_tostring(res):
     okformat = "% 5s % 45s % 24s % 9s % 14s % 10s"
     errformat = "% 5s % 54s % 54s"
     for ginfo in res:
-        resstr = resstr +  "group: %s\n" % ginfo['group']
+        resstr = resstr + "group: %s\n" % ginfo['group']
 
         strok = (okformat+"\n") % (
             'state', 'nodes', 'memory', 'clients', 'ops_per_sec', 'keys'

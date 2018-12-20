@@ -26,6 +26,6 @@ echo "sentinel_inshome=${sentinel_inshome}" |tee -a $pkgdir/install.conf
 
 cd $tmpdir
 echo "start pack $pkgname"
-/usr/bin/zip -r ${pkgname}.zip $pkgname
+/usr/bin/zip -rq ${pkgname}.zip $pkgname
 
 cd ..

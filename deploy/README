@@ -1,0 +1,7 @@
+steps:
+
+./redis_sentinel_deploy.sh
+
+./redisins_deploy.sh gname
+
+./twpins_deploy.sh gname

@@ -8,7 +8,7 @@ source ./install.conf
 unalias cp
 
 if [ -d "$twemproxy_home" ]; then
-    ${twemproxy_home}/sbin/shutdown.sh
+    ${twemproxy_home}/sbin/shutdown.sh ${gname}
 else
     mkdir -pv $twemproxy_home
 fi
@@ -25,7 +25,7 @@ fi
 
 #copy twemproxy配置
 cp -v ./insconfs/${curip}/* ${twemproxy_home}/conf/
-${twemproxy_home}/sbin/restart.sh
+${twemproxy_home}/sbin/start.sh ${gname}
 
 
 ins_res=failed

@@ -7,17 +7,17 @@ source ./install.conf
 
 unalias cp
 
-if [ -d "$redis_inshome" ]; then
-    ${redis_inshome}/bin/redis_shutdown.sh
-else
-    mkdir -pv $redis_inshome
+if [ ! -d "${redis_inshome}" ]; then
+    #第一次安装
+    mkdir -pv ${redis_inshome}
+    cp -rfv redis-instances/* ${redis_inshome}/
+    cp -fv redis_ins_confs/*.conf ${redis_inshome}/config
 fi
 
-cp -rfv redis-instances/* ${redis_inshome}/
-cp -fv redis_ins_confs/${curip}/* ${redis_inshome}/config
-cp -fv redis_ins_confs/*.conf ${redis_inshome}/config
+cp -fv redis_ins_confs/${curip}/redis_${gname}-ins.conf ${redis_inshome}/config
 
-${redis_inshome}/bin/redis_start.sh all updateconfig
+${redis_inshome}/bin/redis_shutdown.sh ${gname}
+${redis_inshome}/bin/redis_start.sh ${gname} updateconfig
 
 ins_res=successful
 if [ "$?" != 0 ]; then

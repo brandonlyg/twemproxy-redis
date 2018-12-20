@@ -11,7 +11,7 @@ set exp "\[$#\]"
 
 spawn ssh -p $sshport $user@$destip
 expect "$exp"
-send "cd $tmpdir; rm -rf $pkgname; unzip ${pkgname}.zip\n"
+send "cd $tmpdir; rm -rf $pkgname; unzip ${pkgname}.zip > /dev/null 2>&1\n"
 expect "$exp"
 send "cd $pkgname; ./install.sh $destip\n"
 expect "$exp"

@@ -1,18 +1,24 @@
 #!/bin/sh
 #部署twemproxy
 
+deploy_gname=$1
+
+if [ -z "$deploy_gname" ]; then
+    echo "miss param deploy gname"
+    exit 1
+fi
+
 pkgname=twpins_install
 
 #生成配置
-./twpins_gen_conf.sh
+./twpins_gen_conf.sh ${deploy_gname}
 
 #打包
-./twpins_pack.sh $pkgname
+./twpins_pack.sh $pkgname ${deploy_gname}
 
 source ./common.sh
-source ./twp_common.sh
 
-servers=$(get_all_servers)
+servers=$(get_twemproxy_servers ${deploy_gname})
 for sname in ${servers}; do
     ip=$(gethost_ip $sname)
     sshport=$(gethost_sshport $sname)

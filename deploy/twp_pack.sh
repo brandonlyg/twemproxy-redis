@@ -48,6 +48,7 @@ cp -v ./twp_install.sh ${pkgdir}/install.sh
 echo "twemproxy_home=${twemproxy_home}" |tee $pkgdir/install.conf
 
 cd $tmpdir
-/usr/bin/zip -r ${pkgname}.zip $pkgname
+echo "start zip ${pkgname}"
+/usr/bin/zip -rq ${pkgname}.zip $pkgname
 
 cd ..
