@@ -28,8 +28,8 @@ def checkres_tostring(res):
             if 'OK' == ndinfo['state']:
                 nodes = ndinfo['nodes']
                 strnodes = "%s:%d-%s:%d" % (
-                    nodes['master']['host'], nodes['master']['port'],
-                    nodes['slave']['host'], nodes['slave']['port']
+                    nodes['main']['host'], nodes['main']['port'],
+                    nodes['subordinate']['host'], nodes['subordinate']['port']
                 )
                 memory = ndinfo['memory']
                 strmemory = "%s/%s" % (memory['used'], memory['max'])
@@ -61,11 +61,11 @@ def checkres_tostring(res):
 
 def erronode_tostring(nd):
     # log.info(nd)
-    rtrole = 'slave'
-    if nd['role'] == 'slave':
-        rtrole = 'master'
-    elif nd['role'] == 'master':
-        rtrole = 'slave'
+    rtrole = 'subordinate'
+    if nd['role'] == 'subordinate':
+        rtrole = 'main'
+    elif nd['role'] == 'main':
+        rtrole = 'subordinate'
     else:
         rtrole = 'None'
 

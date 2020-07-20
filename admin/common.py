@@ -205,26 +205,26 @@ def get_redis_roles(pair):
             log.exception(e)
             continue
 
-        if 'master' == info['role']:
-            master = {
+        if 'main' == info['role']:
+            main = {
                 'node': nd,
             }
-            if 'slave0' in info:
-                slave0 = info['slave0']
-                master['slave'] = {
-                    'host': slave0['ip'],
-                    'port': int(slave0['port'])
+            if 'subordinate0' in info:
+                subordinate0 = info['subordinate0']
+                main['subordinate'] = {
+                    'host': subordinate0['ip'],
+                    'port': int(subordinate0['port'])
                 }
-            roles['master'] = master
-        elif 'slave' == info['role']:
-            slave = {
+            roles['main'] = main
+        elif 'subordinate' == info['role']:
+            subordinate = {
                 'node': nd
             }
-            slave['master'] = {
-                'host': info['master_host'],
-                'port': int(info['master_port'])
+            subordinate['main'] = {
+                'host': info['main_host'],
+                'port': int(info['main_port'])
             }
-            roles['slave'] = slave
+            roles['subordinate'] = subordinate
 
     return roles
 

@@ -1,5 +1,5 @@
 # coding=utf-8
-# 设置master不刷盘， slave appendonly
+# 设置main不刷盘， subordinate appendonly
 
 import logging
 import common
@@ -22,19 +22,19 @@ def main():
             roles = common.get_redis_roles(pair)
 
             rewrite = False
-            if "master" in roles:
-                master = roles['master']
-                nd = master['node']
+            if "main" in roles:
+                main = roles['main']
+                nd = main['node']
                 try:
                     res = nd.get_redis().config_get("save")
                     if res is not None and res['save'] != '':
-                        log.warn("master(%s:%d) save: %s", nd.host, nd.port, str(res))
+                        log.warn("main(%s:%d) save: %s", nd.host, nd.port, str(res))
                         nd.get_redis().config_set("save", "")
                         rewrite = True
 
                     res = nd.get_redis().config_get("appendonly")
                     if res is not None and res['appendonly'] != "no":
-                        log.warn("master(%s:%d) appendonly: %s", nd.host, nd.port, str(res))
+                        log.warn("main(%s:%d) appendonly: %s", nd.host, nd.port, str(res))
                         nd.get_redis().config_set("appendonly", "no")
                         rewrite = True
 
@@ -44,19 +44,19 @@ def main():
                     log.exception(e)
 
             rewrite = False
-            if "slave" in roles:
-                slave = roles['slave']
-                nd = slave['node']
+            if "subordinate" in roles:
+                subordinate = roles['subordinate']
+                nd = subordinate['node']
                 try:
                     res = nd.get_redis().config_get("save")
                     if res is not None and res['save'] != '':
-                        log.warn("slave(%s:%d) save: %s", nd.host, nd.port, str(res))
+                        log.warn("subordinate(%s:%d) save: %s", nd.host, nd.port, str(res))
                         nd.get_redis().config_set("save", "")
                         rewrite = False
 
                     res = nd.get_redis().config_get("appendonly")
                     if res is not None and res['appendonly'] != "yes":
-                        log.warn("slave(%s:%d) appendonly: %s", nd.host, nd.port, str(res))
+                        log.warn("subordinate(%s:%d) appendonly: %s", nd.host, nd.port, str(res))
                         nd.get_redis().config_set("appendonly", "yes")
                         rewrite = False
 

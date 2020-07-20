@@ -28,7 +28,7 @@ def check_redis_nodes():
 检查结果格式
 节点状态正确的格式 
 { 'state':'OK', 
-'nodes':{'master':{host:'', port:1}, 'slave':{'host':'', port:1}, 
+'nodes':{'main':{host:'', port:1}, 'subordinate':{'host':'', port:1}, 
 'memory':{'used': '100M', 'max':'1000M'}
 'clients': 10
 'ops_per_sec': 100
@@ -36,8 +36,8 @@ def check_redis_nodes():
 }
 节点状态错误的格式
 { 'state': 'ERROR', 
-  'node0': {'itself':{'host':'', port:1}, 'role':'master', 'slave':{'host':'', port:1}},
-  'node1': {'itself':{'host':'', port:1}, 'role':'slave', 'master':{'host':'', port:1}}  
+  'node0': {'itself':{'host':'', port:1}, 'role':'main', 'subordinate':{'host':'', port:1}},
+  'node1': {'itself':{'host':'', port:1}, 'role':'subordinate', 'main':{'host':'', port:1}}  
 }
 '''
 def check_redis_group(gname, nodes):
@@ -71,7 +71,7 @@ def check_redis_group(gname, nodes):
 
         res = {}
         if info0['code'] == 0 and info1['code'] == 0:
-            res = check_master_slave_reltive(info0, info1)
+            res = check_main_subordinate_reltive(info0, info1)
         else:
             res['state'] = 'ERROR'
 
@@ -86,23 +86,23 @@ def check_redis_group(gname, nodes):
 # 得到节点的信息
 def get_node_info(res, info0, info1):
     if 'OK' == res['state']:
-        master = info0
-        maddr = res['nodes']['master']
+        main = info0
+        maddr = res['nodes']['main']
 
         addr1 = info1['address']
         if maddr['host'] == addr1['host'] and maddr['port'] == addr1['port']:
-            master = info1
+            main = info1
 
         res['memory'] = {
-            'used': master['used_memory_human'],
-            'max': master['maxmemory_human']
+            'used': main['used_memory_human'],
+            'max': main['maxmemory_human']
         }
 
-        res['clients'] = master['connected_clients']
-        res['ops_per_sec'] = master['instantaneous_ops_per_sec']
+        res['clients'] = main['connected_clients']
+        res['ops_per_sec'] = main['instantaneous_ops_per_sec']
         res['keys'] = 0
-        if master.has_key('db0'):
-            res['keys'] = master['db0']['keys']
+        if main.has_key('db0'):
+            res['keys'] = main['db0']['keys']
     else:
         res['node0'] = get_err_node_info(info0)
         res['node1'] = get_err_node_info(info1)
@@ -120,66 +120,66 @@ def get_err_node_info(info):
     if res['role'] is None:
         return res
 
-    if 'master' == info['role']:
-        res['slave'] = None
-        if info.has_key('slave0'):
-            slave = info['slave0']
-            res['slave'] = {
-                'host': slave['ip'],
-                'port': slave['port']
+    if 'main' == info['role']:
+        res['subordinate'] = None
+        if info.has_key('subordinate0'):
+            subordinate = info['subordinate0']
+            res['subordinate'] = {
+                'host': subordinate['ip'],
+                'port': subordinate['port']
             }
-    elif 'slave' == info['role']:
-        res['master'] = {
-            'host': info['master_host'],
-            'port': info['master_port']
+    elif 'subordinate' == info['role']:
+        res['main'] = {
+            'host': info['main_host'],
+            'port': info['main_port']
         }
 
     return res
 
 
 # 检查两个redis的主-备关系
-def check_master_slave_reltive(info0, info1):
+def check_main_subordinate_reltive(info0, info1):
     res = None
-    if 'master' == info0['role'] and 'slave' == info1['role']:
-        res = check_master_slave(info0, info1)
-    elif 'master' == info1['role'] and 'slave' == info0['role']:
-        res = check_master_slave(info1, info0)
+    if 'main' == info0['role'] and 'subordinate' == info1['role']:
+        res = check_main_subordinate(info0, info1)
+    elif 'main' == info1['role'] and 'subordinate' == info0['role']:
+        res = check_main_subordinate(info1, info0)
     else:
         res = {'state':'ERROR'}
 
     return res
 
 # 检查两个redis的主备关系是否正确
-def check_master_slave(master, slave):
-    m_addr = master['address']
+def check_main_subordinate(main, subordinate):
+    m_addr = main['address']
     # log.info(m_addr)
-    s_addr = slave['address']
+    s_addr = subordinate['address']
     # log.info(s_addr)
 
-    #log.info(master['slave0'])
+    #log.info(main['subordinate0'])
     res = {
         'state': 'ERROR'
     }
 
-    if not master.has_key('slave0'):
+    if not main.has_key('subordinate0'):
         return res
 
-    m_slave = master['slave0']
-    if m_slave is None:
+    m_subordinate = main['subordinate0']
+    if m_subordinate is None:
         return res
 
-    if not (m_slave['ip'] == s_addr['host'] and m_slave['port'] == s_addr['port']):
+    if not (m_subordinate['ip'] == s_addr['host'] and m_subordinate['port'] == s_addr['port']):
         return res
 
-    m_host = slave['master_host']
-    m_port = int(slave['master_port'])
+    m_host = subordinate['main_host']
+    m_port = int(subordinate['main_port'])
     if not (m_host == m_addr['host'] and m_port == m_addr['port']):
         return res
 
     res['state'] = 'OK'
     res['nodes'] = {
-        'master': m_addr,
-        'slave': s_addr
+        'main': m_addr,
+        'subordinate': s_addr
     }
 
     return res
