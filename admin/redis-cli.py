@@ -39,9 +39,9 @@ def main():
         nd0 = pair[0]
         nd1 = pair[1]
 
-        if "master" == role or "all" == role:
+        if "main" == role or "all" == role:
             execute_command(nd0, cmd, args)
-        elif "slave" == role or "all" == role:
+        elif "subordinate" == role or "all" == role:
             execute_command(nd1, cmd, args)
 
 

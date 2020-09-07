@@ -10,24 +10,24 @@ if __name__ == "__main__":
 
 log = logging.getLogger(__name__)
 
-class MasterChangeSettingHandler(object):
+class MainChangeSettingHandler(object):
 
-    def onMasterChanged(self, oldIp, oldPort, newIp, newPort):
+    def onMainChanged(self, oldIp, oldPort, newIp, newPort):
         passwd = "xtkingdee"
         try:
-            rc_master = redis.Redis(host=newIp, port=newPort, password=passwd, socket_timeout=3, socket_connect_timeout=3)
-            # rc_slave = redis.Redis(host=oldIp, port=oldPort, password=passwd, socket_timeout=3, socket_connect_timeout=3)
+            rc_main = redis.Redis(host=newIp, port=newPort, password=passwd, socket_timeout=3, socket_connect_timeout=3)
+            # rc_subordinate = redis.Redis(host=oldIp, port=oldPort, password=passwd, socket_timeout=3, socket_connect_timeout=3)
 
-            data = rc_master.config_get("slaveof")['slaveof']
+            data = rc_main.config_get("subordinateof")['subordinateof']
             if len(data) > 0:
-                rc_master.slaveof()
-                rc_master.config_set("save", "")
-                rc_master.config_set("appendonly", "no")
-                rc_master.config_rewrite()
-                log.info("change %s:%d to master", newIp, newPort)
+                rc_main.subordinateof()
+                rc_main.config_set("save", "")
+                rc_main.config_set("appendonly", "no")
+                rc_main.config_rewrite()
+                log.info("change %s:%d to main", newIp, newPort)
 
             '''
-            data = rc_slave.config_get("slaveof")['slaveof']
+            data = rc_subordinate.config_get("subordinateof")['subordinateof']
             # log.info(data)
             arr = data.split(" ")
             changed = True
@@ -38,11 +38,11 @@ class MasterChangeSettingHandler(object):
                     changed = False
 
             if changed:
-                rc_slave.slaveof(newIp, newPort)
-                rc_master.config_set("save", "")
-                rc_master.config_set("appendonly", "yes")
-                rc_master.config_rewrite()
-                log.info("change %s:%d to slave, master: %s:%d", oldIp, oldPort, newIp, newPort)
+                rc_subordinate.subordinateof(newIp, newPort)
+                rc_main.config_set("save", "")
+                rc_main.config_set("appendonly", "yes")
+                rc_main.config_rewrite()
+                log.info("change %s:%d to subordinate, main: %s:%d", oldIp, oldPort, newIp, newPort)
             '''
 
         except Exception as e:
@@ -50,9 +50,9 @@ class MasterChangeSettingHandler(object):
 
 
 if __name__ == '__main__':
-    handler = MasterChangeSettingHandler()
+    handler = MainChangeSettingHandler()
 
-    handler.onMasterChanged("172.20.183.191", 6579, "172.20.183.190", 6579)
+    handler.onMainChanged("172.20.183.191", 6579, "172.20.183.190", 6579)
 
 
 

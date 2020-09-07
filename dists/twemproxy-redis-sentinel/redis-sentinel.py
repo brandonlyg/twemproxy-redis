@@ -6,7 +6,7 @@ import time
 import os
 import logging
 import twemsentinel
-from masterchangehandler import MasterChangeHandler
+from mainchangehandler import MainChangeHandler
 
 isStart = False
 log = None
@@ -52,8 +52,8 @@ def main():
         twp_home = twp_home.replace('~', userhome)
 
     log.info("twemproxy home: %s", twp_home)
-    masterChangeHandler = MasterChangeHandler(twp_home)
-    masterChangeHandler.start()
+    mainChangeHandler = MainChangeHandler(twp_home)
+    mainChangeHandler.start()
 
 
     strsentinels = pro.get("sentinels")
@@ -68,7 +68,7 @@ def main():
         sentinels.append(addr)
 
 
-    twems = twemsentinel.TwemSentinel(sentinels, masterChangeHandler)
+    twems = twemsentinel.TwemSentinel(sentinels, mainChangeHandler)
     twems.start()
 
     ###
@@ -92,7 +92,7 @@ def main():
         except:
             pass
 
-    masterChangeHandler.stop()
+    mainChangeHandler.stop()
     twems.stop()
 
     log.info("process exit %d" % os.getpid())

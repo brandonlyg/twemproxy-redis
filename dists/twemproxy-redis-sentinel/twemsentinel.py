@@ -9,13 +9,13 @@ import random
 log = logging.getLogger(__name__)
 
 class TwemSentinel(threading.Thread):
-    def __init__(self, sentinels, masterChangeHandler):
+    def __init__(self, sentinels, mainChangeHandler):
         threading.Thread.__init__(self)
 
         self.__isStart = True
 
         self.__sentinels = sentinels
-        self.masterChangeHandler = masterChangeHandler;
+        self.mainChangeHandler = mainChangeHandler;
 
         self.redis = None
         self.pubsub = None
@@ -32,7 +32,7 @@ class TwemSentinel(threading.Thread):
             log.info("connect sentinel %s:%d", addr['host'], addr['port'])
             self.redis = redis.StrictRedis(host=addr['host'], port=addr['port'])
             self.pubsub = self.redis.pubsub()
-            self.pubsub.subscribe(['+switch-master'])
+            self.pubsub.subscribe(['+switch-main'])
         except:
             log.warn("Redis sentinel connection error. %s:%d", addr['host'], addr['port'])
             self.redis = None
@@ -88,6 +88,6 @@ class TwemSentinel(threading.Thread):
         newIp = sentinel[3]
         newPort = sentinel[4]
 
-        log.info('master changed %s:%s to %s:%s', oldIp, str(oldPort), newIp, str(newPort))
+        log.info('main changed %s:%s to %s:%s', oldIp, str(oldPort), newIp, str(newPort))
 
-        self.masterChangeHandler.onMasterChanged(oldIp, oldPort, newIp, newPort);
+        self.mainChangeHandler.onMainChanged(oldIp, oldPort, newIp, newPort);

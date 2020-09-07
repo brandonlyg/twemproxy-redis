@@ -4,8 +4,8 @@
 import os, signal, sys, logging
 from utils import easylog, deamons
 import redis
-from masterchangehandler import MasterChangeHandler
-from masterchangesettinghandler import MasterChangeSettingHandler
+from mainchangehandler import MainChangeHandler
+from mainchangesettinghandler import MainChangeSettingHandler
 isStart = False
 log = None
 
@@ -20,14 +20,14 @@ def subswitchcmd(handler):
     global redisaddr
     global changerole
 
-    settinghandler = MasterChangeSettingHandler()
+    settinghandler = MainChangeSettingHandler()
 
     while isStart:
         try:
             rc = redis.Redis(host=redisaddr['host'], port=redisaddr['port'], password=redisaddr['password'])
             pubsub = rc.pubsub()
-            pubsub.subscribe(['switchmaster'])
-            log.info("subscribe switchmaster")
+            pubsub.subscribe(['switchmain'])
+            log.info("subscribe switchmain")
             while pubsub.subscribed and isStart:
                 res = pubsub.get_message(ignore_subscribe_messages=True, timeout=0.1)
                 if res is None:
@@ -51,9 +51,9 @@ def subswitchcmd(handler):
                 newaddr = addrs[1]
 
                 if changerole:
-                    settinghandler.onMasterChanged(oldaddr['host'], oldaddr['port'], newaddr['host'], newaddr['port'])
+                    settinghandler.onMainChanged(oldaddr['host'], oldaddr['port'], newaddr['host'], newaddr['port'])
 
-                handler.onMasterChanged(oldaddr['host'], oldaddr['port'], newaddr['host'], newaddr['port'])
+                handler.onMainChanged(oldaddr['host'], oldaddr['port'], newaddr['host'], newaddr['port'])
 
 
         except:
@@ -106,14 +106,14 @@ def main():
         userhome = os.path.expanduser("~")
         twhome = twhome.replace('~', userhome)
 
-    masterChangeHandler = MasterChangeHandler(twhome)
-    masterChangeHandler.start()
+    mainChangeHandler = MainChangeHandler(twhome)
+    mainChangeHandler.start()
     isStart = True
 
     log.info("twpswitch start. changerole:%s", str(changerole))
-    subswitchcmd(masterChangeHandler)
+    subswitchcmd(mainChangeHandler)
 
-    masterChangeHandler.stop()
+    mainChangeHandler.stop()
 
 
 if __name__ == '__main__':
